@@ -518,9 +518,9 @@ JitsiConference.prototype._init = function(options = {}) {
  * Joins the conference.
  * @param password {string} the password
  */
-JitsiConference.prototype.join = function(password) {
+JitsiConference.prototype.join = function(password, flipDevice = false) {
     if (this.room) {
-        this.room.join(password).then(() => this._maybeSetSITimeout());
+        this.room.join(password, flipDevice).then(() => this._maybeSetSITimeout());
     }
 };
 
@@ -1559,7 +1559,7 @@ JitsiConference.prototype.muteParticipant = function(id, mediaType) {
  * @param features the member botType, if any
  */
 JitsiConference.prototype.onMemberJoined = function(
-        jid, nick, role, isHidden, statsID, status, identity, botType, fullJid, features) {
+        jid, nick, role, isHidden, statsID, status, identity, botType, fullJid, features, isFlipDevice) {
     const id = Strophe.getResourceFromJid(jid);
 
     if (id === 'focus' || this.myUserId() === id) {
@@ -1567,11 +1567,12 @@ JitsiConference.prototype.onMemberJoined = function(
     }
 
     const participant
-        = new JitsiParticipant(jid, this, nick, isHidden, statsID, status, identity);
+        = new JitsiParticipant(jid, this, nick, isHidden, statsID, status, identity, isFlipDevice);
 
     participant.setRole(role);
     participant.setBotType(botType);
     participant.setFeatures(features);
+    participant.setIsFlipDevice(isFlipDevice);
 
     this.participants[id] = participant;
     this.eventEmitter.emit(
@@ -1693,7 +1694,7 @@ JitsiConference.prototype.onMemberLeft = function(jid) {
  * @param {string?} kickedParticipantId - when it is not a kick for local participant,
  * this is the id of the participant which was kicked.
  */
-JitsiConference.prototype.onMemberKicked = function(isSelfPresence, actorId, kickedParticipantId) {
+JitsiConference.prototype.onMemberKicked = function(isSelfPresence, actorId, kickedParticipantId, isFlipDevice) {
     // This check which be true when we kick someone else. With the introduction of lobby
     // the ChatRoom KICKED event is now also emitted for ourselves (the kicker) so we want to
     // avoid emitting an event where `undefined` kicked someone.
@@ -1713,6 +1714,7 @@ JitsiConference.prototype.onMemberKicked = function(isSelfPresence, actorId, kic
     }
 
     const kickedParticipant = this.participants[kickedParticipantId];
+    kickedParticipant.setIsFlipDevice(isFlipDevice);
 
     this.eventEmitter.emit(
         JitsiConferenceEvents.PARTICIPANT_KICKED, actorParticipant, kickedParticipant);

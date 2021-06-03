@@ -27,7 +27,7 @@ export default class JitsiParticipant {
      * @param {string} status - the initial status if any.
      * @param {object} identity - the xmpp identity
      */
-    constructor(jid, conference, displayName, hidden, statsID, status, identity) {
+    constructor(jid, conference, displayName, hidden, statsID, status, identity, isFlipDevice) {
         this._jid = jid;
         this._id = Strophe.getResourceFromJid(jid);
         this._conference = conference;
@@ -41,6 +41,7 @@ export default class JitsiParticipant {
         this._connectionStatus = ParticipantConnectionStatus.ACTIVE;
         this._properties = {};
         this._identity = identity;
+        this._isFlipDevice = isFlipDevice;
         this._features = new Set();
     }
 
@@ -186,6 +187,10 @@ export default class JitsiParticipant {
         return this._hidden;
     }
 
+    isFlipDevice() {
+        return this._isFlipDevice;
+    }
+
     /**
      * @returns {Boolean} Whether this participant has muted their audio.
      */
@@ -231,6 +236,10 @@ export default class JitsiParticipant {
      */
     setRole(newRole) {
         this._role = newRole;
+    }
+
+    setIsFlipDevice(newIsFlipDevice){
+        this._isFlipDevice = newIsFlipDevice;
     }
 
     /**
